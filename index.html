@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <title>アニメーション係</title>
 
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <style>
     body {
       margin: 0;
@@ -39,9 +42,6 @@
     li {
       padding: 10px;
       border-bottom: 1px solid #444;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
     }
 
     input, textarea {
@@ -61,24 +61,11 @@
       border: none;
       cursor: pointer;
     }
-
-    .delete {
-      background: #cc3333;
-    }
-
-    .lock {
-      background: #1a1a1a;
-      border: 1px solid #444;
-      padding: 20px;
-      max-width: 600px;
-      margin: auto;
-    }
   </style>
 </head>
 
 <body>
 
-<!-- タイトル -->
 <section>
   <h1>アニメーション係</h1>
   <ul>
@@ -89,113 +76,62 @@
   </ul>
 </section>
 
-<!-- 全体コメント -->
 <section>
-  <h2>コメント（全員OK）</h2>
+  <h2>コメント</h2>
   <input id="name" placeholder="名前">
   <textarea id="comment" placeholder="コメント"></textarea>
   <button onclick="addComment()">送信</button>
+
   <ul id="commentList"></ul>
 </section>
 
-<!-- 限定エリア -->
-<section>
-  <h2>🔒 係の人限定</h2>
-
-  <div class="lock">
-    <input id="pw" type="password" placeholder="パスワード">
-    <button onclick="checkPassword()">解除</button>
-
-    <div id="secret" style="display:none;">
-      <h3>係専用コメント</h3>
-
-      <input id="sname" placeholder="名前">
-      <textarea id="scomment" placeholder="係専用コメント"></textarea>
-      <button onclick="addSecretComment()">送信</button>
-
-      <ul id="secretList"></ul>
-    </div>
-  </div>
-</section>
-
 <script>
-/* ===== 全体コメント ===== */
-function loadComments() {
-  const list = document.getElementById("commentList");
-  const comments = JSON.parse(localStorage.getItem("comments")) || [];
-  list.innerHTML = "";
-  comments.forEach(c => {
-    const li = document.createElement("li");
-    li.textContent = c;
-    list.appendChild(li);
-  });
-}
+  /* ===== Supabase 接続 ===== */
+  const SUPABASE_URL = "https://ajilqmhulukgnljjklwz.supabase.co";   // ← Project URL
+  const SUPABASE_KEY = "sb_publishable_4iQaavGyaW6GSEjQdwCLKw_skhKUv6T";      // ← apikey
 
-function addComment() {
-  const name = document.getElementById("name").value.trim();
-  const comment = document.getElementById("comment").value.trim();
-  if (!name || !comment) return;
+  const supabase = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
 
-  const comments = JSON.parse(localStorage.getItem("comments")) || [];
-  comments.push(`${name}：${comment}`);
-  localStorage.setItem("comments", JSON.stringify(comments));
+  /* ===== コメント読み込み ===== */
+  async function loadComments() {
+    const { data, error } = await supabase
+      .from("comments")
+      .select("*")
+      .order("created_at", { ascending: false });
 
-  document.getElementById("comment").value = "";
-  loadComments();
-}
-loadComments();
+    const list = document.getElementById("commentList");
+    list.innerHTML = "";
 
-/* ===== 限定コメント ===== */
-const PASSWORD = "niku";
+    if (error) {
+      list.innerHTML = `<li>${error.message}</li>`;
+      return;
+    }
 
-function checkPassword() {
-  const input = document.getElementById("pw").value;
-  if (input === PASSWORD) {
-    document.getElementById("secret").style.display = "block";
-    loadSecretComments(); // ← これが足りなかった
-  } else {
-    alert("パスワードが違います");
+    data.forEach(c => {
+      const li = document.createElement("li");
+      li.textContent = `${c.name}：${c.comment}`;
+      list.appendChild(li);
+    });
   }
-}
 
-function loadSecretComments() {
-  const list = document.getElementById("secretList");
-  const comments = JSON.parse(localStorage.getItem("secretComments")) || [];
-  list.innerHTML = "";
+  /* ===== コメント追加 ===== */
+  async function addComment() {
+    const name = document.getElementById("name").value.trim();
+    const comment = document.getElementById("comment").value.trim();
+    if (!name || !comment) return;
 
-  comments.forEach((c, i) => {
-    const li = document.createElement("li");
-    li.textContent = c;
+    await supabase.from("comments").insert([
+      { name, comment }
+    ]);
 
-    const del = document.createElement("button");
-    del.textContent = "削除";
-    del.className = "delete";
-    del.onclick = () => deleteSecretComment(i);
+    document.getElementById("comment").value = "";
+    loadComments();
+  }
 
-    li.appendChild(del);
-    list.appendChild(li);
-  });
-}
-
-function addSecretComment() {
-  const name = document.getElementById("sname").value.trim();
-  const comment = document.getElementById("scomment").value.trim();
-  if (!name || !comment) return;
-
-  const comments = JSON.parse(localStorage.getItem("secretComments")) || [];
-  comments.push(`${name}：${comment}`);
-  localStorage.setItem("secretComments", JSON.stringify(comments));
-
-  document.getElementById("scomment").value = "";
-  loadSecretComments();
-}
-
-function deleteSecretComment(index) {
-  const comments = JSON.parse(localStorage.getItem("secretComments")) || [];
-  comments.splice(index, 1);
-  localStorage.setItem("secretComments", JSON.stringify(comments));
-  loadSecretComments();
-}
+  loadComments();
 </script>
 
 </body>
