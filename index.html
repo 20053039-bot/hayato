@@ -10,7 +10,6 @@
       background: #111;
       color: white;
       font-family: sans-serif;
-      overflow-y: auto;
     }
 
     section {
@@ -33,13 +32,16 @@
     ul {
       list-style: none;
       padding: 0;
-      max-width: 500px;
+      max-width: 600px;
       margin: 20px auto;
     }
 
     li {
       padding: 10px;
       border-bottom: 1px solid #444;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
     input, textarea {
@@ -53,15 +55,15 @@
 
     button {
       margin-top: 10px;
-      padding: 10px 20px;
+      padding: 6px 12px;
       background: #00aaff;
       color: white;
       border: none;
       cursor: pointer;
     }
 
-    button:hover {
-      background: #0088cc;
+    .delete {
+      background: #cc3333;
     }
 
     .lock {
@@ -76,10 +78,9 @@
 
 <body>
 
-<!-- タイトル＆メンバー -->
+<!-- タイトル -->
 <section>
   <h1>アニメーション係</h1>
-
   <ul>
     <li>ナガオカ コウシロウ</li>
     <li>イトウ ハヤテ</li>
@@ -91,15 +92,13 @@
 <!-- 全体コメント -->
 <section>
   <h2>コメント（全員OK）</h2>
-
   <input id="name" placeholder="名前">
   <textarea id="comment" placeholder="コメント"></textarea>
   <button onclick="addComment()">送信</button>
-
   <ul id="commentList"></ul>
 </section>
 
-<!-- 係の人限定 -->
+<!-- 限定エリア -->
 <section>
   <h2>🔒 係の人限定</h2>
 
@@ -107,7 +106,7 @@
     <input id="pw" type="password" placeholder="パスワード">
     <button onclick="checkPassword()">解除</button>
 
-    <div id="secret" style="display:none; margin-top:20px;">
+    <div id="secret" style="display:none;">
       <h3>係専用コメント</h3>
 
       <input id="sname" placeholder="名前">
@@ -120,41 +119,84 @@
 </section>
 
 <script>
-  /* ===== 全体コメント ===== */
-  const commentList = document.getElementById("commentList");
+/* ===== 全体コメント ===== */
+function loadComments() {
+  const list = document.getElementById("commentList");
+  const comments = JSON.parse(localStorage.getItem("comments")) || [];
+  list.innerHTML = "";
+  comments.forEach(c => {
+    const li = document.createElement("li");
+    li.textContent = c;
+    list.appendChild(li);
+  });
+}
 
-  function loadComments() {
-    const comments = JSON.parse(localStorage.getItem("comments")) || [];
-    commentList.innerHTML = "";
-    comments.forEach(c => {
-      const li = document.createElement("li");
-      li.textContent = c;
-      commentList.appendChild(li);
-    });
-  }
+function addComment() {
+  const name = document.getElementById("name").value.trim();
+  const comment = document.getElementById("comment").value.trim();
+  if (!name || !comment) return;
 
-  function addComment() {
-    const name = document.getElementById("name").value.trim();
-    const comment = document.getElementById("comment").value.trim();
-    if (!name || !comment) return;
+  const comments = JSON.parse(localStorage.getItem("comments")) || [];
+  comments.push(`${name}：${comment}`);
+  localStorage.setItem("comments", JSON.stringify(comments));
 
-    const comments = JSON.parse(localStorage.getItem("comments")) || [];
-    comments.push(`${name}：${comment}`);
-    localStorage.setItem("comments", JSON.stringify(comments));
-
-    document.getElementById("comment").value = "";
-    loadComments();
-  }
-
+  document.getElementById("comment").value = "";
   loadComments();
+}
+loadComments();
 
-  /* ===== 限定エリア ===== */
-  const PASSWORD = "1234"; // ←好きなのに変えてOK
+/* ===== 限定コメント ===== */
+const PASSWORD = "niku";
 
-  function checkPassword() {
-    const input = document.getElementById("pw").value;
-    if (input === PASSWORD) {
-      document.getElementById("secret").style.display = "block";
-    } else {
-      alert("パスワードが違います");
-    }
+function checkPassword() {
+  const input = document.getElementById("pw").value;
+  if (input === PASSWORD) {
+    document.getElementById("secret").style.display = "block";
+    loadSecretComments(); // ← これが足りなかった
+  } else {
+    alert("パスワードが違います");
+  }
+}
+
+function loadSecretComments() {
+  const list = document.getElementById("secretList");
+  const comments = JSON.parse(localStorage.getItem("secretComments")) || [];
+  list.innerHTML = "";
+
+  comments.forEach((c, i) => {
+    const li = document.createElement("li");
+    li.textContent = c;
+
+    const del = document.createElement("button");
+    del.textContent = "削除";
+    del.className = "delete";
+    del.onclick = () => deleteSecretComment(i);
+
+    li.appendChild(del);
+    list.appendChild(li);
+  });
+}
+
+function addSecretComment() {
+  const name = document.getElementById("sname").value.trim();
+  const comment = document.getElementById("scomment").value.trim();
+  if (!name || !comment) return;
+
+  const comments = JSON.parse(localStorage.getItem("secretComments")) || [];
+  comments.push(`${name}：${comment}`);
+  localStorage.setItem("secretComments", JSON.stringify(comments));
+
+  document.getElementById("scomment").value = "";
+  loadSecretComments();
+}
+
+function deleteSecretComment(index) {
+  const comments = JSON.parse(localStorage.getItem("secretComments")) || [];
+  comments.splice(index, 1);
+  localStorage.setItem("secretComments", JSON.stringify(comments));
+  loadSecretComments();
+}
+</script>
+
+</body>
+</html>
