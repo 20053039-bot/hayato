@@ -3,31 +3,75 @@
 <head>
   <meta charset="UTF-8">
   <title>アニメーション係</title>
+
   <style>
     body {
       margin: 0;
       background: #111;
       color: white;
       font-family: sans-serif;
+      overflow-y: auto;
     }
+
     section {
       min-height: 100vh;
       padding: 40px;
     }
+
     h1 {
+      text-align: center;
+      font-size: 48px;
       animation: フワフワ 2s infinite;
     }
+
     @keyframes フワフワ {
       0% { transform: translateY(0); }
       50% { transform: translateY(-10px); }
       100% { transform: translateY(0); }
     }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      max-width: 400px;
+      margin: auto;
+    }
+
+    li {
+      padding: 10px;
+      border-bottom: 1px solid #444;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      background: #222;
+      color: white;
+      border: 1px solid #555;
+    }
+
+    button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      background: #00aaff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #0088cc;
+    }
   </style>
 </head>
+
 <body>
 
+<!-- タイトル＆メンバー -->
 <section>
-  <h1>アニメーションカカリ</h1>
+  <h1>アニメーション係</h1>
+
   <ul>
     <li>ナガオカ コウシロウ</li>
     <li>イトウ ハヤテ</li>
@@ -36,22 +80,46 @@
   </ul>
 </section>
 
+<!-- コメント欄 -->
 <section>
-  <h2>スクロール確認</h2>
-  <p>下にスクロールできます</p>
-</section>
-
-</body>
-  <section>
   <h2>コメント</h2>
 
-  <input id="name" placeholder="名前" />
-  <br><br>
+  <input id="name" placeholder="名前">
   <textarea id="comment" placeholder="コメント"></textarea>
-  <br><br>
   <button onclick="addComment()">送信</button>
 
   <ul id="commentList"></ul>
 </section>
 
+<script>
+  const commentList = document.getElementById("commentList");
+
+  function loadComments() {
+    const comments = JSON.parse(localStorage.getItem("comments")) || [];
+    commentList.innerHTML = "";
+    comments.forEach(c => {
+      const li = document.createElement("li");
+      li.textContent = c;
+      commentList.appendChild(li);
+    });
+  }
+
+  function addComment() {
+    const name = document.getElementById("name").value.trim();
+    const comment = document.getElementById("comment").value.trim();
+
+    if (!name || !comment) return;
+
+    const comments = JSON.parse(localStorage.getItem("comments")) || [];
+    comments.push(`${name}：${comment}`);
+    localStorage.setItem("comments", JSON.stringify(comments));
+
+    document.getElementById("comment").value = "";
+    loadComments();
+  }
+
+  loadComments();
+</script>
+
+</body>
 </html>
