@@ -8,6 +8,21 @@ const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const commentsDiv = document.getElementById("comments");
 
+/* =========================
+   🔥 ブラウザごとのユーザーID生成
+========================= */
+function getUserId() {
+  let id = localStorage.getItem("user_id");
+  if (!id) {
+    id = crypto.randomUUID();
+    localStorage.setItem("user_id", id);
+  }
+  return id;
+}
+
+/* =========================
+   コメント読み込み
+========================= */
 async function loadComments() {
   const { data, error } = await supabaseClient
     .from("comments")
@@ -21,6 +36,8 @@ async function loadComments() {
 
   commentsDiv.innerHTML = "";
 
+  const myId = getUserId();
+
   data.forEach(c => {
     const div = document.createElement("div");
     div.className = "comment";
@@ -31,29 +48,36 @@ async function loadComments() {
       ${escapeHTML(c.comment)}
     `;
 
-    const deleteBtn = document.createElement("button");
-    deleteBtn.textContent = "削除";
-    deleteBtn.onclick = async () => {
-      const { error } = await supabaseClient
-        .from("comments")
-        .delete()
-        .eq("id", c.id);
-
-      if (error) {
-        alert("削除できませんでした");
-        return;
-      }
-
-      loadComments();
-      loadMembers();
-    };
-
     div.appendChild(content);
-    div.appendChild(deleteBtn);
+
+    // 🔥 自分のコメントだけ削除ボタン表示
+    if (c.user_id === myId) {
+      const deleteBtn = document.createElement("button");
+      deleteBtn.textContent = "削除";
+      deleteBtn.onclick = async () => {
+        const { error } = await supabaseClient
+          .from("comments")
+          .delete()
+          .eq("id", c.id);
+
+        if (error) {
+          alert("削除できませんでした");
+          return;
+        }
+
+        loadComments();
+      };
+
+      div.appendChild(deleteBtn);
+    }
+
     commentsDiv.appendChild(div);
   });
 }
 
+/* =========================
+   コメント送信
+========================= */
 async function sendComment() {
   const name = document.getElementById("name").value.trim();
   const comment = document.getElementById("comment").value.trim();
@@ -62,9 +86,14 @@ async function sendComment() {
 
   const { error } = await supabaseClient
     .from("comments")
-    .insert([{ name, comment }]);
+    .insert([{
+      name: name,
+      comment: comment,
+      user_id: getUserId()  // 🔥 ここが重要
+    }]);
 
   if (error) {
+    console.error(error);
     alert("保存できませんでした");
     return;
   }
@@ -73,32 +102,11 @@ async function sendComment() {
   document.getElementById("comment").value = "";
 
   loadComments();
-  loadMembers();
 }
 
-function toggleMembers() {
-  document.getElementById("members").classList.toggle("show");
-}
-
-async function loadMembers() {
-  const { data, error } = await supabaseClient
-    .from("comments")
-    .select("name");
-
-  if (error) return;
-
-  const uniqueNames = [...new Set(data.map(d => d.name))];
-
-  const memberList = document.getElementById("memberList");
-  memberList.innerHTML = "";
-
-  uniqueNames.forEach(name => {
-    const p = document.createElement("p");
-    p.textContent = name;
-    memberList.appendChild(p);
-  });
-}
-
+/* =========================
+   XSS対策
+========================= */
 function escapeHTML(str) {
   return str
     .replace(/&/g, "&amp;")
@@ -106,5 +114,5 @@ function escapeHTML(str) {
     .replace(/>/g, "&gt;");
 }
 
+/* 初期読み込み */
 loadComments();
-loadMembers();
