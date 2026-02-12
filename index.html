@@ -7,24 +7,25 @@
 </head>
 <body>
 
-  <!-- メンバーボタン -->
-  <button onclick="toggleMembers()" id="memberBtn">👥 メンバー</button>
+  <h1>コメントページ</h1>
 
-  <!-- スライドメニュー -->
-  <div id="members" class="members">
-    <h3>メンバー一覧</h3>
-    <div id="memberList">読み込み中...</div>
-  </div>
+  <!-- 🔥 メンバー表示（大きめ） -->
+  <h2 class="member-title">メンバー</h2>
+  <ul class="member-list">
+    <li>ナガオカコウシロウ</li>
+    <li>イトウハヤテ</li>
+    <li>オギノイッシン</li>
+    <li>ハギワラナオタカ</li>
+  </ul>
 
-  <h1>コメント</h1>
-
+  <!-- コメント入力 -->
   <div class="form">
     <input type="text" id="name" placeholder="名前">
     <textarea id="comment" placeholder="コメント"></textarea>
     <button onclick="sendComment()">送信</button>
   </div>
 
-  <h2>一覧</h2>
+  <h2>コメント一覧</h2>
   <div id="comments"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
