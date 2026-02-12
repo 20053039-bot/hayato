@@ -2,137 +2,24 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>アニメーション係</title>
-
-  <!-- Supabase -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <style>
-    body {
-      margin: 0;
-      background: #111;
-      color: white;
-      font-family: sans-serif;
-    }
-
-    section {
-      min-height: 100vh;
-      padding: 40px;
-    }
-
-    h1 {
-      text-align: center;
-      font-size: 48px;
-      animation: フワフワ 2s infinite;
-    }
-
-    @keyframes フワフワ {
-      0% { transform: translateY(0); }
-      50% { transform: translateY(-10px); }
-      100% { transform: translateY(0); }
-    }
-
-    ul {
-      list-style: none;
-      padding: 0;
-      max-width: 600px;
-      margin: 20px auto;
-    }
-
-    li {
-      padding: 10px;
-      border-bottom: 1px solid #444;
-    }
-
-    input, textarea {
-      width: 100%;
-      padding: 10px;
-      margin-top: 10px;
-      background: #222;
-      color: white;
-      border: 1px solid #555;
-    }
-
-    button {
-      margin-top: 10px;
-      padding: 6px 12px;
-      background: #00aaff;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-  </style>
+  <title>コメントページ</title>
+  <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
-<section>
-  <h1>アニメーション係</h1>
-  <ul>
-    <li>ナガオカ コウシロウ</li>
-    <li>イトウ ハヤテ</li>
-    <li>オギノ イッシン</li>
-    <li>ハギワラ ナオタカ</li>
-  </ul>
-</section>
+  <h1>コメント</h1>
 
-<section>
-  <h2>コメント</h2>
-  <input id="name" placeholder="名前">
-  <textarea id="comment" placeholder="コメント"></textarea>
-  <button onclick="addComment()">送信</button>
+  <div class="form">
+    <input type="text" id="name" placeholder="名前">
+    <textarea id="comment" placeholder="コメント"></textarea>
+    <button onclick="sendComment()">送信</button>
+  </div>
 
-  <ul id="commentList"></ul>
-</section>
+  <h2>一覧</h2>
+  <div id="comments"></div>
 
-<script>
-  /* ===== Supabase 接続 ===== */
-  const SUPABASE_URL = "https://ajilqmhulukgnljjklwz.supabase.co";   // ← Project URL
-  const SUPABASE_KEY = "sb_publishable_4iQaavGyaW6GSEjQdwCLKw_skhKUv6T";      // ← apikey
-
-  const supabase = window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_KEY
-  );
-
-  /* ===== コメント読み込み ===== */
-  async function loadComments() {
-    const { data, error } = await supabase
-      .from("comments")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    const list = document.getElementById("commentList");
-    list.innerHTML = "";
-
-    if (error) {
-      list.innerHTML = `<li>${error.message}</li>`;
-      return;
-    }
-
-    data.forEach(c => {
-      const li = document.createElement("li");
-      li.textContent = `${c.name}：${c.comment}`;
-      list.appendChild(li);
-    });
-  }
-
-  /* ===== コメント追加 ===== */
-  async function addComment() {
-    const name = document.getElementById("name").value.trim();
-    const comment = document.getElementById("comment").value.trim();
-    if (!name || !comment) return;
-
-    await supabase.from("comments").insert([
-      { name, comment }
-    ]);
-
-    document.getElementById("comment").value = "";
-    loadComments();
-  }
-
-  loadComments();
-</script>
-
+  <!-- Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="script.js"></script>
 </body>
 </html>
