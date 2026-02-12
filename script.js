@@ -1,6 +1,4 @@
 // =====================
-// 🔥 自分の情報に変更
-// =====================
 const SUPABASE_URL = "https://ajilqmhulukgnljjklwz.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_4iQaavGyaW6GSEjQdwCLKw_skhKUv6T";
 // =====================
@@ -42,12 +40,12 @@ async function loadComments() {
         .eq("id", c.id);
 
       if (error) {
-        console.error(error);
         alert("削除できませんでした");
         return;
       }
 
       loadComments();
+      loadMembers();
     };
 
     div.appendChild(content);
@@ -64,10 +62,9 @@ async function sendComment() {
 
   const { error } = await supabaseClient
     .from("comments")
-    .insert([{ name: name, comment: comment }]);
+    .insert([{ name, comment }]);
 
   if (error) {
-    console.error(error);
     alert("保存できませんでした");
     return;
   }
@@ -76,6 +73,30 @@ async function sendComment() {
   document.getElementById("comment").value = "";
 
   loadComments();
+  loadMembers();
+}
+
+function toggleMembers() {
+  document.getElementById("members").classList.toggle("show");
+}
+
+async function loadMembers() {
+  const { data, error } = await supabaseClient
+    .from("comments")
+    .select("name");
+
+  if (error) return;
+
+  const uniqueNames = [...new Set(data.map(d => d.name))];
+
+  const memberList = document.getElementById("memberList");
+  memberList.innerHTML = "";
+
+  uniqueNames.forEach(name => {
+    const p = document.createElement("p");
+    p.textContent = name;
+    memberList.appendChild(p);
+  });
 }
 
 function escapeHTML(str) {
@@ -86,3 +107,4 @@ function escapeHTML(str) {
 }
 
 loadComments();
+loadMembers();
