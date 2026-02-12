@@ -19,3 +19,29 @@ button {
   border-bottom: 1px solid #ccc;
   padding: 10px 0;
 }
+
+/* メンバーUI */
+
+#memberBtn {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 1001;
+}
+
+.members {
+  position: fixed;
+  top: -300px;
+  left: 0;
+  width: 100%;
+  background: #111;
+  color: white;
+  padding: 20px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+  transition: top 0.3s ease;
+  z-index: 1000;
+}
+
+.members.show {
+  top: 0;
+}
