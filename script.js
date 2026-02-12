@@ -1,6 +1,4 @@
 // =====================
-// 🔥 自分の情報
-// =====================
 const SUPABASE_URL = "https://ajilqmhulukgnljjklwz.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_4iQaavGyaW6GSEjQdwCLKw_skhKUv6T";
 // =====================
@@ -10,8 +8,18 @@ const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const commentsDiv = document.getElementById("comments");
 
-const currentUser = localStorage.getItem("chatUser") || prompt("名前を入力してください");
-localStorage.setItem("chatUser", currentUser);
+// =====================
+// ユーザー名保存処理
+// =====================
+let currentUser = localStorage.getItem("username");
+
+if (!currentUser) {
+  currentUser = prompt("名前を入力してください");
+  if (!currentUser || currentUser.trim() === "") {
+    currentUser = "名無し";
+  }
+  localStorage.setItem("username", currentUser);
+}
 
 // =====================
 // コメント読み込み
@@ -76,7 +84,7 @@ async function sendComment() {
 }
 
 // =====================
-// 削除（自分のみ表示される）
+// 削除（自分のみ）
 // =====================
 async function deleteComment(id) {
   const { error } = await supabaseClient
