@@ -9,7 +9,7 @@ const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const commentsDiv = document.getElementById("comments");
 
 // =====================
-// ユーザー名保存処理
+// ユーザー名処理
 // =====================
 let currentUser = localStorage.getItem("username");
 
@@ -19,6 +19,24 @@ if (!currentUser) {
     currentUser = "名無し";
   }
   localStorage.setItem("username", currentUser);
+}
+
+// 名前変更ボタン生成
+const changeBtn = document.createElement("button");
+changeBtn.textContent = "名前変更";
+changeBtn.style.position = "fixed";
+changeBtn.style.top = "20px";
+changeBtn.style.right = "20px";
+changeBtn.onclick = changeName;
+document.body.appendChild(changeBtn);
+
+function changeName() {
+  const newName = prompt("新しい名前を入力");
+  if (!newName || newName.trim() === "") return;
+
+  currentUser = newName.trim();
+  localStorage.setItem("username", currentUser);
+  alert("名前を変更しました");
 }
 
 // =====================
