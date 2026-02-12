@@ -1,8 +1,8 @@
 // =====================
 // 🔥 自分の情報に変更
 // =====================
-const SUPABASE_URL = "https://あなたのprojectid.supabase.co";
-const SUPABASE_ANON_KEY = "あなたのanonキー";
+const SUPABASE_URL = "https://ajilqmhulukgnljjklwz.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_4iQaavGyaW6GSEjQdwCLKw_skhKUv6T";
 // =====================
 
 const { createClient } = supabase;
