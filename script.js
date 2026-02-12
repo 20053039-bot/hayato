@@ -26,10 +26,32 @@ async function loadComments() {
   data.forEach(c => {
     const div = document.createElement("div");
     div.className = "comment";
-    div.innerHTML = `
+
+    const content = document.createElement("div");
+    content.innerHTML = `
       <strong>${escapeHTML(c.name)}</strong><br>
       ${escapeHTML(c.comment)}
     `;
+
+    const deleteBtn = document.createElement("button");
+    deleteBtn.textContent = "削除";
+    deleteBtn.onclick = async () => {
+      const { error } = await supabaseClient
+        .from("comments")
+        .delete()
+        .eq("id", c.id);
+
+      if (error) {
+        console.error(error);
+        alert("削除できませんでした");
+        return;
+      }
+
+      loadComments();
+    };
+
+    div.appendChild(content);
+    div.appendChild(deleteBtn);
     commentsDiv.appendChild(div);
   });
 }
