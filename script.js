@@ -1,4 +1,6 @@
 // =====================
+// 🔥 自分の情報
+// =====================
 const SUPABASE_URL = "https://ajilqmhulukgnljjklwz.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_4iQaavGyaW6GSEjQdwCLKw_skhKUv6T";
 // =====================
@@ -8,21 +10,12 @@ const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const commentsDiv = document.getElementById("comments");
 
-/* =========================
-   🔥 ブラウザごとのユーザーID生成
-========================= */
-function getUserId() {
-  let id = localStorage.getItem("user_id");
-  if (!id) {
-    id = crypto.randomUUID();
-    localStorage.setItem("user_id", id);
-  }
-  return id;
-}
+const currentUser = localStorage.getItem("chatUser") || prompt("名前を入力してください");
+localStorage.setItem("chatUser", currentUser);
 
-/* =========================
-   コメント読み込み
-========================= */
+// =====================
+// コメント読み込み
+// =====================
 async function loadComments() {
   const { data, error } = await supabaseClient
     .from("comments")
@@ -30,83 +23,77 @@ async function loadComments() {
     .order("created_at", { ascending: false });
 
   if (error) {
-    console.error(error);
+    console.error("取得エラー:", error);
     return;
   }
 
   commentsDiv.innerHTML = "";
 
-  const myId = getUserId();
-
   data.forEach(c => {
     const div = document.createElement("div");
     div.className = "comment";
 
-    const content = document.createElement("div");
-    content.innerHTML = `
+    div.innerHTML = `
       <strong>${escapeHTML(c.name)}</strong><br>
       ${escapeHTML(c.comment)}
+      ${
+        c.user_id === currentUser
+          ? `<br><button onclick="deleteComment(${c.id})">削除</button>`
+          : ""
+      }
     `;
-
-    div.appendChild(content);
-
-    // 🔥 自分のコメントだけ削除ボタン表示
-    if (c.user_id === myId) {
-      const deleteBtn = document.createElement("button");
-      deleteBtn.textContent = "削除";
-      deleteBtn.onclick = async () => {
-        const { error } = await supabaseClient
-          .from("comments")
-          .delete()
-          .eq("id", c.id);
-
-        if (error) {
-          alert("削除できませんでした");
-          return;
-        }
-
-        loadComments();
-      };
-
-      div.appendChild(deleteBtn);
-    }
 
     commentsDiv.appendChild(div);
   });
 }
 
-/* =========================
-   コメント送信
-========================= */
+// =====================
+// コメント送信
+// =====================
 async function sendComment() {
-  const name = document.getElementById("name").value.trim();
-  const comment = document.getElementById("comment").value.trim();
-
-  if (!name || !comment) return;
+  const commentText = document.getElementById("comment").value.trim();
+  if (!commentText) return;
 
   const { error } = await supabaseClient
     .from("comments")
-    .insert([{
-      name: name,
-      comment: comment,
-      user_id: getUserId()  // 🔥 ここが重要
-    }]);
+    .insert([
+      {
+        name: currentUser,
+        comment: commentText,
+        user_id: currentUser,
+        created_at: new Date()
+      }
+    ]);
 
   if (error) {
-    console.error(error);
+    console.error("保存エラー:", error);
     alert("保存できませんでした");
     return;
   }
 
-  document.getElementById("name").value = "";
   document.getElementById("comment").value = "";
+  loadComments();
+}
+
+// =====================
+// 削除（自分のみ表示される）
+// =====================
+async function deleteComment(id) {
+  const { error } = await supabaseClient
+    .from("comments")
+    .delete()
+    .eq("id", id)
+    .eq("user_id", currentUser);
+
+  if (error) {
+    console.error("削除エラー:", error);
+    return;
+  }
 
   loadComments();
 }
 
-/* =========================
-   XSS対策
-========================= */
+// =====================
 function escapeHTML(str) {
   return str
     .replace(/&/g, "&amp;")
@@ -114,5 +101,4 @@ function escapeHTML(str) {
     .replace(/>/g, "&gt;");
 }
 
-/* 初期読み込み */
 loadComments();
